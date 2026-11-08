@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DJ R3X — Animatronic Guts (concept)</title>
+<meta name="robots" content="noindex,nofollow">
+<style>
+  :root{--bg:#0f1318;--panel:#171c23;--line:#2a313b;--text:#e6e9ee;--mute:#9aa4b2;--accent:#f0b429}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:13px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden}
+  #app{display:flex;height:100%}
+  #side{width:340px;min-width:340px;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:14px 14px 30px}
+  #view{flex:1;position:relative}
+  canvas{display:block}
+  h1{font-size:15px;margin:0 0 2px}
+  .sub{color:var(--mute);font-size:12px;margin-bottom:10px}
+  h2{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:16px 0 6px;font-weight:600}
+  .row{display:flex;align-items:center;gap:8px;margin:5px 0}
+  .row label{flex:0 0 108px}
+  .row input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
+  .row .val{flex:0 0 58px;text-align:right;color:var(--mute);font-variant-numeric:tabular-nums}
+  .note{color:var(--mute);font-size:11.5px;margin:2px 0 6px}
+  .btns{display:flex;flex-wrap:wrap;gap:6px}
+  button{background:#222a34;color:var(--text);border:1px solid var(--line);border-radius:6px;padding:5px 9px;font:inherit;cursor:pointer}
+  button:hover{border-color:#4a5566}
+  button.on{background:#3a2f12;border-color:var(--accent);color:#ffd77a}
+  .part{display:flex;gap:8px;align-items:flex-start;padding:5px 6px;border-radius:6px;cursor:pointer}
+  .part:hover{background:#1f262f}
+  .part.sel{background:#2a2412;outline:1px solid #6b5313}
+  .sw{flex:0 0 12px;height:12px;border-radius:3px;margin-top:3px}
+  .pn{font-weight:600}
+  .pd{color:var(--mute);font-size:12px}
+  .tag{font-size:10px;padding:1px 5px;border-radius:4px;margin-left:4px;border:1px solid #3a4250;color:#b9c2cf;white-space:nowrap}
+  .lay{display:flex;align-items:center;gap:8px;margin:3px 0;cursor:pointer}.lay .st{margin-left:auto;font-size:11px;color:var(--mute);border:1px solid var(--line);border-radius:5px;padding:1px 6px;min-width:44px;text-align:center}.lay .st.on{color:#ffd77a;border-color:#6b5313}.lay .st.glass{color:#8fd3ff;border-color:#2c5670}
+  .buys{margin-top:4px;display:flex;flex-direction:column;gap:2px}.buy{font-size:11.5px;color:#7fc4ff;text-decoration:none}.buy:hover{text-decoration:underline}
+  .shop{width:100%;border-collapse:collapse;font-size:11.5px}.shop td{padding:3px 2px;border-bottom:1px solid #232a33;vertical-align:top}.shop td.r{text-align:right;white-space:nowrap;color:#cfd6de}.shop a{color:#7fc4ff;text-decoration:none}.shop .vh td{color:#c9b27a;text-transform:uppercase;letter-spacing:.05em;font-size:10.5px;padding-top:9px;border-bottom:none}.shop .tot td{font-weight:700;color:#ffd77a;border-bottom:none;padding-top:8px}
+  .grp{font-size:11px;color:#c9b27a;margin:10px 0 2px;text-transform:uppercase;letter-spacing:.06em}
+  #tip{position:absolute;pointer-events:none;background:rgba(18,22,28,.95);border:1px solid #3a4250;border-radius:8px;padding:8px 10px;max-width:290px;display:none;font-size:12px}
+  #tip b{display:block;font-size:13px;margin-bottom:2px}
+  #hint{position:absolute;left:12px;bottom:10px;color:var(--mute);font-size:12px;background:rgba(15,19,24,.7);padding:4px 8px;border-radius:6px}
+  #caption{position:absolute;left:12px;top:12px;max-width:520px;background:rgba(15,19,24,.86);border:1px solid #2f3742;border-radius:8px;padding:9px 12px;display:none;font-size:12.5px}
+  #caption b{color:#ffd77a}
+  #loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--mute)}
+  @media (max-width:760px){#app{flex-direction:column-reverse}#side{width:100%;min-width:0;height:45%}#view{height:55%}}
+</style>
+</head>
+<body>
+<div id="gate" style="position:fixed;inset:0;z-index:99;background:#0f1318;display:flex;align-items:center;justify-content:center">
+  <form id="gateForm" style="background:#171c23;border:1px solid #2a313b;border-radius:12px;padding:26px 28px;width:330px;text-align:center">
+    <div style="font-size:17px;font-weight:700;margin-bottom:4px">DJ R3X — animatronic guts</div>
+    <div style="color:#9aa4b2;font-size:12.5px;margin-bottom:16px">Concept build for community feedback. Enter the password from the post.</div>
+    <input id="gatePw" type="password" placeholder="Password" autocomplete="off" style="width:100%;padding:9px 11px;border-radius:7px;border:1px solid #3a4250;background:#0f1318;color:#e6e9ee;font:inherit;margin-bottom:10px">
+    <button type="submit" style="width:100%;padding:9px;border-radius:7px;border:1px solid #6b5313;background:#3a2f12;color:#ffd77a;font:inherit;cursor:pointer">Open model</button>
+    <div id="gateMsg" style="color:#ff8a80;font-size:12px;min-height:16px;margin-top:8px"></div>
+  </form></div>
+<div id="app">
+  <div id="side">
+    <h1>DJ R3X — animatronic guts</h1>
+    <div class="sub">v1.2 concept · all servos · rack-and-pinion lift · V-wheel carriage · goBILDA goRAIL spine · community head mech. Body shells are the guide STLs; the head joint is from its STEP file; everything else is modeled to the planned sizes.</div>
+
+    <div style="background:#1f2a1d;border:1px solid #35502f;border-radius:8px;padding:8px 10px;font-size:12px;color:#cfe8c7;margin:6px 0 4px"><b>Concept for feedback.</b> Everything here is a proposal, not a finished design. Tell me what would break, bind, or wobble. Body shells: RX Series Builders DJ-R3X v2 files (CC BY-NC, shown for reference only). Head mech and several ideas come from community builds.</div>
+    <h2>See how it works</h2>
+    <div class="btns">
+      <button data-tour="lift">Neck lift</button>
+      <button data-tour="yaw">Neck turn</button>
+      <button data-tour="head">Head nod / tilt</button>
+      <button data-tour="ring">Ring drive</button>
+      <button data-tour="limits">Limits</button>
+      <button data-tour="plates">Plates & body mounts</button>
+      <button data-tour="all">Full dance</button>
+    </div>
+    <div class="note">Each tour moves the camera, hides what's in the way, and runs that mechanism slowly.</div>
+
+    <h2>Body shells</h2>
+    <div class="btns" id="shellBtns">
+      <button data-m="ghost" class="on">See-through</button>
+      <button data-m="solid">Solid</button>
+      <button data-m="hide">Hide</button>
+    </div>
+    <div class="btns" style="margin-top:6px">
+      <button id="hideHead">Hide head</button>
+      <button id="hideArms">Hide arms</button>
+      <button id="headType">Head: Mech shell</button>
+    </div>
+
+    <h2>Show / hide</h2>
+    <div class="btns" id="presetBtns">
+      <button data-p="all" class="on">Everything</button>
+      <button data-p="guts">Guts only</button>
+      <button data-p="neck">Neck system</button>
+      <button data-p="rings">Ring system</button>
+      <button data-p="struct">Structure</button>
+    </div>
+    <div id="layers" style="margin-top:8px"></div>
+    <div class="note">Plates and posts cycle Solid → Glass → Off.</div>
+
+    <h2>Move it</h2>
+    <div class="row"><label>Neck lift</label><input id="lift" type="range" min="0" max="150" value="100"><span class="val" id="liftV"></span></div>
+    <div class="row"><label>Neck turn</label><input id="yaw" type="range" min="-100" max="100" value="0"><span class="val" id="yawV"></span></div>
+    <div class="row"><label>Head nod</label><input id="pitch" type="range" min="-22" max="22" value="0"><span class="val" id="pitchV"></span></div>
+    <div class="row"><label>Head tilt</label><input id="roll" type="range" min="-18" max="18" value="0"><span class="val" id="rollV"></span></div>
+    <div class="note">Nod/tilt limits are an estimate for the head mech: the head-bottom hole hits the coupler around ±25°.</div>
+    <div class="row"><label>Poker ring</label><input id="r1" type="range" min="-120" max="120" value="0"><span class="val" id="r1V"></span></div>
+    <div class="row"><label>Throttle ring</label><input id="r2" type="range" min="-120" max="120" value="0"><span class="val" id="r2V"></span></div>
+    <div class="row"><label>Hero ring</label><input id="r3" type="range" min="-120" max="120" value="0"><span class="val" id="r3V"></span></div>
+    <div id="limStat" class="note"></div><div class="note">Software limit ±90° (motor just stops). Hard stop ±105°: blue tab hits the black bumpers. Try dragging past 90°.</div>
+    <div class="btns" style="margin-top:6px">
+      <button id="demo">▶ Play dance</button>
+      <button id="reset">Reset</button>
+      <button id="slow">Slow-mo</button>
+    </div>
+
+    <h2>Camera</h2>
+    <div class="btns">
+      <button data-cam="iso">3/4 view</button>
+      <button data-cam="front">Side</button>
+      <button data-cam="top">Top down</button>
+      <button data-cam="neck">Neck</button>
+      <button data-cam="headc">Head</button>
+      <button data-cam="base">Base</button>
+    </div>
+
+    <h2>Shopping list</h2>
+    <div class="note">Prices checked Nov 8, 2026. Printed parts, aluminum plates (SendCutSend) and the machined head-joint piece are not included yet.</div>
+    <div class="btns" style="margin-bottom:6px"><button id="shopToggle">Show shopping list</button></div>
+    <div id="shop" style="display:none"></div>
+
+    <h2>Parts (click to highlight)</h2>
+    <div id="parts"></div>
+  </div>
+  <div id="view">
+    <div id="loading">Loading model…</div>
+    <div id="caption"></div>
+    <div id="tip"></div>
+    <div id="hint">Drag to orbit · scroll to zoom · right-drag to pan · hover a part</div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+// ---------- password gate: model data is AES-GCM encrypted; key derived from the password ----------
+await new Promise(res=>{const f=document.getElementById('gateForm'),pw=document.getElementById('gatePw'),msg=document.getElementById('gateMsg');pw.focus();
+  f.onsubmit=async e=>{e.preventDefault();msg.textContent='Unlocking…';
+    try{const buf=new Uint8Array(await (await fetch('meshes.bin')).arrayBuffer());const salt=buf.slice(0,16),iv=buf.slice(16,28),ct=buf.slice(28);
+      const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.value.trim().toUpperCase()),'PBKDF2',false,['deriveKey']);
+      const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
+      const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv},key,ct);window.R3X_MESH=JSON.parse(new TextDecoder().decode(pt));
+      document.getElementById('gate').remove();res();}catch(err){msg.textContent='Wrong password';}};});
+
+
+// ===================== scene =====================
+const view=document.getElementById('view');
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+view.appendChild(renderer.domElement);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0f1318);
+const camera=new THREE.PerspectiveCamera(35,1,2,20000);
+const controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true;
+scene.add(new THREE.HemisphereLight(0xdfe8ff,0x2a2520,1.05));
+const sun=new THREE.DirectionalLight(0xffffff,1.7); sun.position.set(900,1500,700); scene.add(sun);
+const fill=new THREE.DirectionalLight(0xbfd2ff,0.55); fill.position.set(-900,400,-800); scene.add(fill);
+const grid=new THREE.GridHelper(1400,28,0x2a313b,0x1d232b); grid.position.y=-58; scene.add(grid);
+function resize(){const w=view.clientWidth,h=view.clientHeight;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
+addEventListener('resize',resize);
+
+// ===================== dimensions (mm, guide coords, Y up) =====================
+const D={
+  floor:-54.3, plateT:3.175, footT:6.35,
+  px:48, pz:38, post:24, postTop:589,
+  tierT:4.76, tierR:110,
+  tiers:[{top:356,ang:0,inv:true,lip:332,ro:125,  // guide spacer-ring hole patterns (measured from LS_SR_1 / MS_SR_1 / TR_SR_Full): [deg, r, body?]
+          holes:[[1,118.3,1],[61,118.3,1],[121,118.3,1],[181,118.3,1],[241,118.3,1],[301,118.3,1],[16,116.1,0],[76,116.1,0],[106,116.1,0],[166,116.1,0],[196,116.1,0],[256,116.1,0],[286,116.1,0],[346,116.1,0]]},
+         {top:403,ang:180,lip:420,ro:123,holes:[30,90,150,210,270,330].map(d=>[d,118.3,2])},
+         {top:476,ang:90,lip:493,ro:125,holes:[...[35,95,155,215,275,335].map(d=>[d,118.3,1]),...[5,65,125,185,245,305].map(d=>[d,117.5,0]),...[20,50,80,110,140,170,200,230,260,290,320,350].map(d=>[d,118.2,0])]}],   // plate top, motor angle, T1 hangs its bearing under the plate; lip = underside/top of printed ring lip
+  cup:[[372,388],[452,468],[525,540]],
+  seat:152, mid:250, topPlate:589,
+  rail:[30,330],
+  tb0:80, hb0:615,               // carriage ref (now low, in the pedestal) & head-bottom at lift 0
+  cupR:84.5, pinR:9.55, motR:74.95,   // ring servo: 30T GT2 pinion
+};
+const DRY=446, RKX=-18, PY=205;   // spring drum height; lift rack x-position; fixed lift pinion height
+const PIVOT_OFF=38;               // head-mech pivot above head bottom
+const HEAD_SHIFT=D.hb0-700;       // guide head sits at hb=700
+
+// ===================== materials =====================
+const shellMat=new THREE.MeshStandardMaterial({color:0xb9bec6,roughness:.85,transparent:true,opacity:.15,depthWrite:false,side:THREE.DoubleSide});
+const shellSolid=new THREE.MeshStandardMaterial({color:0xa7adb6,roughness:.8});
+const M=(c,o={})=>new THREE.MeshStandardMaterial(Object.assign({color:c,roughness:.45,metalness:.35},o));
+const mat={
+  alum:M(0xb8c7d6,{metalness:.65,roughness:.35}), plate:M(0x8fb3d9,{metalness:.55,roughness:.4}), plate2:M(0x7fc1b5,{metalness:.55,roughness:.4}),
+  gorail:M(0xc5ccd4,{metalness:.75,roughness:.3}), steelDark:M(0x2b2f35,{metalness:.8,roughness:.25}), steel:M(0xcfd6de,{metalness:.9,roughness:.2}),
+  race:M(0xe0a030,{metalness:.5}), race2:M(0xc9892a,{metalness:.5}), ball:M(0xeeeeee,{metalness:.95,roughness:.1}),
+  cup:M(0xd65a5a,{metalness:.05,roughness:.65}), belt:M(0x151515,{metalness:0,roughness:.9}),
+  motorBlack:M(0x1c1c1e,{metalness:.3,roughness:.5}), motorMid:M(0x8d949c,{metalness:.8,roughness:.3}),
+  block:M(0xa9b2bc,{metalness:.8,roughness:.25}), seal:M(0xb3261e,{metalness:.1,roughness:.6}),
+  servo:M(0x2e2e2e,{metalness:.2,roughness:.6}), servoLabel:M(0xe6c84a,{metalness:.1,roughness:.6}),
+  spring:M(0x9a6fc0,{metalness:.7,roughness:.3}), tube:M(0xdfe5ec,{metalness:.95,roughness:.12}),
+  elec:M(0xe9d79a,{metalness:.05,roughness:.8}), coil:M(0x262626,{metalness:.1,roughness:.7}),
+  sensor:M(0x4a7fd0), stud:M(0xd9d9d9,{metalness:.9,roughness:.2}), pcarr:M(0x3a7d44,{metalness:.1,roughness:.7}),
+  rod:M(0xbfc6ce,{metalness:.9,roughness:.2}), print:M(0x2b2b2e,{metalness:.05,roughness:.75}), bushing:M(0xe9c46a,{metalness:.1,roughness:.6}),
+  stop:M(0x3d7be0,{metalness:.2,roughness:.5}), bumper:M(0x111111,{metalness:0,roughness:.95}), magnet:M(0xb0b0b0,{metalness:.9,roughness:.2}),
+  sensorOn:new THREE.MeshStandardMaterial({color:0x4cff7a,emissive:0x22ff55,emissiveIntensity:1.2}),
+  bumperHit:new THREE.MeshStandardMaterial({color:0xff3030,emissive:0xff2020,emissiveIntensity:1}),
+};
+
+// ===================== part registry =====================
+const PARTS=[],byId={};
+function part(id,group,name,desc,tag,color){const p={id,group,name,desc,tag,color,meshes:[]};PARTS.push(p);byId[id]=p;return p;}
+function reg(obj,pid){obj.traverse(o=>{if(o.isMesh){o.userData.pid=pid;o.userData.base=o.material;byId[pid].meshes.push(o);}});return obj;}
+const hex=c=>'#'+new THREE.Color(c).getHexString();
+
+// ===================== helpers =====================
+const box=(w,h,d)=>new THREE.BoxGeometry(w,h,d);
+const cyl=(r,h,s=32)=>new THREE.CylinderGeometry(r,r,h,s);
+function mesh(g,m){return new THREE.Mesh(g,m);}
+function at(o,x,y,z){o.position.set(x,y,z);return o;}
+function extrudeUp(shape,t,seg=48){const g=new THREE.ExtrudeGeometry(shape,{depth:t,bevelEnabled:false,curveSegments:seg});g.rotateX(-Math.PI/2);return g;}
+function circleShape(r){const s=new THREE.Shape();s.absarc(0,0,r,0,Math.PI*2,false);return s;}
+function holeC(x,y,r){const h=new THREE.Path();h.absarc(x,y,r,0,Math.PI*2,true);return h;}
+function holeR(x0,y0,x1,y1){const h=new THREE.Path();h.moveTo(x0,y0);h.lineTo(x0,y1);h.lineTo(x1,y1);h.lineTo(x1,y0);h.lineTo(x0,y0);return h;}
+function holeRR(cx,cy,w,h,r){const p=new THREE.Path(),x=cx-w/2,y=cy-h/2;p.moveTo(x+r,y);p.lineTo(x+w-r,y);p.quadraticCurveTo(x+w,y,x+w,y+r);p.lineTo(x+w,y+h-r);p.quadraticCurveTo(x+w,y+h,x+w-r,y+h);p.lineTo(x+r,y+h);p.quadraticCurveTo(x,y+h,x,y+h-r);p.lineTo(x,y+r);p.quadraticCurveTo(x,y,x+r,y);return p;}
+function annulus(r0,r1,h){const s=circleShape(r1);s.holes.push(holeC(0,0,r0));return extrudeUp(s,h,96);}
+const BHX=D.px+D.post/2+0.6, BHZ=D.pz+D.post/2+0.6;   // spine box half sizes (+clearance)
+
+// goRAIL 1109 profile: 24 mm square, T-slot each face, corners on Ø32, bore
+function goRailShape(){
+  const pts=[],h=12,so=3.2,sd=4.5,N=12;
+  const side=(a,b)=>{for(let i=0;i<=N;i++){pts.push(a.clone().lerp(b,i/N));}};
+  const V=(x,y)=>new THREE.Vector2(x,y);
+  // go around: each side with a notch
+  const corners=[V(h,-h),V(h,h),V(-h,h),V(-h,-h)];
+  for(let k=0;k<4;k++){
+    const a=corners[k],b=corners[(k+1)%4],d=b.clone().sub(a).normalize(),n=V(-d.y,d.x); // n points inward? (ccw: inward is left)
+    const mid=a.clone().add(b).multiplyScalar(.5);
+    side(a,mid.clone().addScaledVector(d,-so));
+    pts.push(mid.clone().addScaledVector(d,-so).addScaledVector(n,sd*0.45));
+    pts.push(mid.clone().addScaledVector(d,-so-1.2).addScaledVector(n,sd));
+    pts.push(mid.clone().addScaledVector(d,so+1.2).addScaledVector(n,sd));
+    pts.push(mid.clone().addScaledVector(d,so).addScaledVector(n,sd*0.45));
+    side(mid.clone().addScaledVector(d,so),b);
+  }
+  const clipped=pts.map(p=>p.length()>16?p.clone().setLength(16):p);
+  const s=new THREE.Shape(clipped);
+  s.holes.push(holeC(0,0,7));
+  for(const sx of[-1,1])for(const sy of[-1,1])s.holes.push(holeC(sx*9.2,sy*9.2,1.7));
+  return s;
+}
+const GORAIL_SHAPE=goRailShape();
+
+// NEMA stepper: shaft up (+Y), body below y=0
+function nema(size,len,shaftLen,label){
+  const g=new THREE.Group(),c=size*0.13,h=size/2;
+  const s=new THREE.Shape();s.moveTo(-h+c,-h);s.lineTo(h-c,-h);s.lineTo(h,-h+c);s.lineTo(h,h-c);s.lineTo(h-c,h);s.lineTo(-h+c,h);s.lineTo(-h,h-c);s.lineTo(-h,-h+c);s.lineTo(-h+c,-h);
+  const capT=Math.min(8,len*0.22);
+  const layer=(y0,t,m,scale=1)=>{const m1=mesh(extrudeUp(s,t,4),m);m1.scale.set(scale,1,scale);m1.position.y=y0;g.add(m1);};
+  layer(-len,capT,mat.motorBlack,1.0);
+  layer(-len+capT,len-2*capT,mat.motorMid,0.97);
+  for(let i=0;i<6;i++){const fin=mesh(extrudeUp(s,0.6,4),mat.motorBlack);fin.scale.set(0.975,1,0.975);fin.position.y=-len+capT+ (len-2*capT)*(i+.5)/6;g.add(fin);}
+  layer(-capT,capT,mat.motorBlack,1.0);
+  g.add(at(mesh(cyl(size*0.27,2,40),mat.motorMid),0,1,0));
+  g.add(at(mesh(cyl(2.5,shaftLen,16),mat.steel),0,shaftLen/2,0));
+  g.add(at(mesh(box(10,7,7),mat.motorBlack),h+3,-len+capT/2+2,0));
+  return g;
+}
+// GT2 pulley, axis Y, centered at y=0 (teeth band from -w/2..w/2)
+function gt2Pulley(teeth,w=7,toothed=true,hub=true){
+  const g=new THREE.Group(),pr=teeth*2/(2*Math.PI);
+  g.add(mesh(cyl(pr-0.75,w,teeth*2),mat.alum));
+  if(toothed){const tg=box(1.0,w,1.1);for(let i=0;i<teeth;i++){const a=i/teeth*Math.PI*2;const t=mesh(tg,mat.alum);t.position.set((pr-0.3)*Math.cos(a),0,(pr-0.3)*Math.sin(a));t.rotation.y=-a;g.add(t);}}
+  g.add(at(mesh(cyl(pr+2,1,32),mat.alum),0,w/2+0.5,0));g.add(at(mesh(cyl(pr+2,1,32),mat.alum),0,-w/2-0.5,0));
+  if(hub)g.add(at(mesh(cyl(Math.max(5,pr*0.85),6,24),mat.alum),0,-w/2-4,0));
+  return g;
+}
+// two-circle open belt loop (2D), returns {pts,len,at(s)->{p,ang}}
+function loop2(c1,r1,c2,r2){
+  const d=c2.clone().sub(c1),L=d.length(),u=d.clone().normalize(),al=Math.atan2(u.y,u.x),be=Math.asin((r1-r2)/L);
+  const pts=[],seg=[];
+  const arc=(c,r,a0,a1,n)=>{for(let i=0;i<=n;i++){const a=a0+(a1-a0)*i/n;pts.push(new THREE.Vector2(c.x+r*Math.cos(a),c.y+r*Math.sin(a)));}};
+  const A=al+Math.PI/2+be, B=al-Math.PI/2-be;
+  arc(c1,r1,A,B+2*Math.PI,120);           // far side of c1
+  arc(c2,r2,B,A,120);                      // far side of c2 (straight segments implicit between)
+  pts.push(pts[0].clone());
+  const cum=[0];for(let i=1;i<pts.length;i++)cum.push(cum[i-1]+pts[i].distanceTo(pts[i-1]));
+  const len=cum[cum.length-1];
+  function atS(s){s=((s%len)+len)%len;let lo=0,hi=cum.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(cum[m]<=s)lo=m;else hi=m;}
+    const t=(s-cum[lo])/(cum[hi]-cum[lo]||1);const p=pts[lo].clone().lerp(pts[hi],t);const dd=pts[hi].clone().sub(pts[lo]);return{p,ang:Math.atan2(dd.y,dd.x)};}
+  return{len,atS};
+}
+
+// ===================== groups =====================
+const root=new THREE.Group();scene.add(root);
+const fixedG=new THREE.Group();root.add(fixedG);
+const ringG=[0,1,2].map(()=>{const g=new THREE.Group();root.add(g);return g;});
+const ballG=[0,1,2].map(()=>{const g=new THREE.Group();root.add(g);return g;});
+const carriageG=new THREE.Group();root.add(carriageG);
+const yawG=new THREE.Group();root.add(yawG);                // moves with lift, rotates with yaw
+const neckMechG=new THREE.Group();yawG.add(neckMechG);neckMechG.position.y=HEAD_SHIFT;
+const headPivot=new THREE.Group();yawG.add(headPivot);headPivot.position.y=D.hb0+PIVOT_OFF;
+const headG=new THREE.Group();headPivot.add(headG);headG.position.y=-(D.hb0+PIVOT_OFF)+HEAD_SHIFT;  // guide coords inside
+const coilG=new THREE.Group();root.add(coilG);
+const dyn={};  // dynamic objects
+
+// ===================== part list =====================
+part('plate','Structure','Base plate — community drive plate (V3)','Ø464 × 1/8" aluminum. The base bowl bolts to its rim; wheel cutouts keep the mecanum drive option open.','SendCutSend',0x8fb3d9);
+part('foot','Structure','Printed base hub (PETG-CF, Ø220)','Replaces the aluminum foot plate. A closed floor spans the drive plate\'s 144 mm center cutout; the 4 goRAIL posts sit in 40 mm sockets and bolt down through the floor into their threaded ends. 8 bolts hold it to the drive plate outside the cutout. Open center for the neck-turn servo.','Print',0x2b2b2e);
+part('posts','Structure','Spine posts — goBILDA 1109 goRAIL ×4','24 mm profile, T-slot on every face, 4 threaded holes in each end. ~637 mm long.','goBILDA',0xc5ccd4);
+part('seat','Structure','Printed pedestal cradle','Community-style open cradle: six angled struts from a foot ring on the base hub up to a seat ring (Ø300) under the base top ring. Supports the base shell and the pedestal; replaces the aluminum seat plate.','Print',0x2b2b2e);
+part('mid','Structure','Pedestal mid brace','Ø168 aluminum halfway up the pedestal. Stiffens the spine box; mounts the lift motor and wiring.','SendCutSend',0x7fc1b5);
+part('tiers','Structure','Tier plates T1 / T2 / T3','Ø220 × 3/16" aluminum at each ring\'s bearing. Hold the bearing inner race and that ring\'s motor. Each tier + its ring lifts off as a module.','SendCutSend',0x8fb3d9);
+part('topplate','Structure','Printed U-cap','Ties the four post tops together with 15 mm sockets, open at the front (the common U-frame). Center hole for the neck tube and coil.','Print',0x2b2b2e);
+part('brackets','Structure','Plate brackets','Small aluminum L-brackets under each plate: one leg bolts into a goRAIL T-slot, the other into the plate. Lets you slide any plate up/down the posts to fine-tune heights.','goBILDA / SendCutSend',0xb8c7d6);
+part('studs','Structure','Body mount standoffs','Aluminum standoffs with magnets/screws where the printed body (base top ring, pedestal) attaches to the plates.','goBILDA / McMaster',0xd9d9d9);
+part('bear','Rings','Ring bearings ×3 (10" ring lazy susan)','Inner race bolts to the tier plate (fixed), outer race to the ring (turns). Balls shown rolling at half speed.','Amazon',0xe0a030);
+part('cups','Rings','Drive rings ×3 (the guide\'s spacer rings, upgraded)','Printed PETG-CF, 8 mm, Ø250 (fits the X1C bed). Same outer footprint and the exact hole pattern as the guide\'s LS_SR_1 / MS_SR_1 / TR_SR_Full spacer rings, so the bearing screws and the body ring\'s own heat-sets line up (gold = body screws). Adds an inner flange with a seat groove for a GT2 belt glued teeth-in on the ~234° arc the pinion reaches. Print these instead of the spacer rings.','Print',0xd65a5a);
+part('ringmot','Rings','Ring servos — goBILDA 5-turn torque ×3','5-turn (1800°) servo on the far side of each tier plate. Servo hub → sonic hub → 8 mm REX shaft up through the plate to a 30T GT2 pinion. 30T against the 84.5 mm drive ring = 8.85:1, so the servo\'s 5 turns become ±101° at the ring — exactly the travel we want, and the servo\'s tiny wobble shrinks 9×.','goBILDA',0x2e2e2e);
+part('stops','Rings','Hard stops ×3','A blue tab on each ring and two rubber-faced aluminum bumpers on the tier plate. Physical backup at ±105° if the software ever goes past its ±90° limit. Bumpers flash red on contact.','Print + alum',0x3d7be0);
+part('carriage','Neck','Lift carriage — goBILDA 1120 U-channel','192 mm U-channel, open to the front. Holds the neck tube in two 32 mm flanged bearings (top and bottom, ~180 mm apart), the belt clamp and the spring tab. The whole thing slides up and down; the tube only turns.','goBILDA',0x7d8792);
+part('wings','Neck','Carriage wing plates','1/8" aluminum: a full plate on the back of the channel and two strips on the front (front stays open). They carry the V-wheels out to the posts.','SendCutSend',0x7fc1b5);
+part('vwheels','Neck','V-wheels ×8','goBILDA 3600 V-wheels on 13 mm standoffs, riding the V-grooves on the inner faces of the 4 goRAIL posts (a proven community setup). Two per post, ~160 mm apart, so the carriage can\'t rock.','goBILDA',0x1c1c1e);
+part('liftplate','Neck','Lift servo plate','1/8" aluminum plate across the back of the two back posts (SendCutSend). Holds the lift servo in a goBILDA servo frame.','SendCutSend',0x7fc1b5);
+part('lift','Neck','Lift servo + brass gear','goBILDA 5-turn torque servo with a 24T brass MOD 0.8 gear (the "gold gear" in other builds). Fixed to the frame so its wires never move. 24T = 60 mm of rack per servo turn; we use ~2.5 of its 5 turns for 150 mm of lift.','goBILDA',0xd4a63a);
+part('rack','Neck','Gear rack (acetal MOD 0.8)','goBILDA 131-tooth / 328 mm rack, cut to ~218 mm and bolted to the carriage\'s back wing plate. Same rack goBILDA uses in its servo-driven gear rack kits.','goBILDA',0x1c1c1e);
+part('cfspring','Neck','Constant-force spring','Steel tape spring unrolling from a drum under the top plate. Pulls up ≈ the head\'s weight, so the motor only does the moving.','McMaster',0x9a6fc0);
+part('yawsrv','Neck','Neck-turn servo (direct drive)','goBILDA 25-2 torque servo hanging under the carriage channel in a printed/aluminum frame, spline straight up into a servo hub bolted to the tube\'s clamping hub. 300° servo range covers ±100° of head turn; the tube\'s two bearings carry all the load so the servo only twists.','goBILDA',0x2e2e2e);
+part('tube','Neck','Neck tube — goBILDA 4100 32 mm OD × 600 mm','Runs from the head-mech coupler down into the carriage, held by the carriage\'s two bearings ~180 mm apart. Lifts with the carriage, turns for yaw.','goBILDA',0xdfe5ec);
+part('coil','Neck','Coiled wiring conduit','The screen-accurate "spring" on the neck: the head\'s wiring in a coiled tube.','Amazon',0x262626);
+part('hcoupler','Head mech','Neck coupler ','Printed coupler: 32 mm socket for the tube, goBILDA hub pattern on top.','Print',0xc9a227);
+part('hjoint','Head mech','U-joint + gimbal bearings','goBILDA 4005 U-joint with bearings and pillow blocks. Lets the head nod and tilt but not turn.','goBILDA',0xd0d6de);
+part('hcustom','Head mech','Custom joint piece (machined)','Replaces half of the goBILDA U-joint. Must be CNC machined from the head-mech STEP file.','CNC',0xff8a3d);
+part('hshaft','Head mech','8 mm REX shaft + hubs','Vertical shaft fixed to the neck side; the tie rods push against its top hub.','goBILDA',0xcfd6de);
+part('hplate','Head mech','Head mounting plate','Printed plate bolted inside the head bottom; carries the two torque servos.','Print',0x3b3f46);
+part('hservo','Head mech','Torque servos ×2 (goBILDA 25-2)','Both push = nod. Opposite = tilt. They ride with the head.','goBILDA',0x2e2e2e);
+part('hrods','Head mech','Tie rods (M4 ball links)','Connect each servo horn to the fixed hub on the neck shaft.','goBILDA',0xbfc6ce);
+part('elec','Power','Power + controller','Mean Well 24 V supply standing on edge against the bowl wall (−X), and a board on +X with the Pololu Maestro 24, two 6 V servo bucks and the 5 V logic buck. Both clear the wheel cutouts.','Pololu / Mean Well',0xe9d79a);
+
+// ===================== BASE / STRUCTURE =====================
+{ const s=circleShape(232);
+  for(const[cx,cy]of[[96,140],[-96,140],[96,-140],[-96,-140]])s.holes.push(holeRR(cx,cy,88,40,8));
+  const c=72,ch=10,sq=new THREE.Path();sq.moveTo(-c+ch,-c);sq.lineTo(-c,-c+ch);sq.lineTo(-c,c-ch);sq.lineTo(-c+ch,c);sq.lineTo(c-ch,c);sq.lineTo(c,c-ch);sq.lineTo(c,-c+ch);sq.lineTo(c-ch,-c);sq.lineTo(-c+ch,-c);s.holes.push(sq);
+  for(let i=0;i<12;i++){const a=i*Math.PI/6;s.holes.push(holeC(225*Math.cos(a),225*Math.sin(a),2.6));}
+  fixedG.add(reg(at(mesh(extrudeUp(s,D.plateT,96),mat.plate),0,D.floor-D.plateT,0),'plate'));
+  const f=new THREE.Shape();f.moveTo(-92,-92);f.lineTo(92,-92);f.lineTo(92,92);f.lineTo(-92,92);f.lineTo(-92,-92);
+  for(const sx of[-1,1])for(const sz of[-1,1])f.holes.push(holeC(sx*80,sz*80,2.2));
+  // PRINTED BASE HUB (PETG-CF, Ø220 x 40): closed floor under the 4 post sockets (the drive plate's plate has a 144 mm hole there),
+  // posts bolt down through the floor into their threaded ends; 8 bolts to the drive plate outside its cutout; open centre for the neck-turn servo.
+  { const g=new THREE.Group(),H=40,R=110;
+    const sh=circleShape(R);sh.holes.push(holeR(-D.px+D.post/2,-D.pz+D.post/2,D.px-D.post/2,D.pz-D.post/2));
+    g.add(at(mesh(extrudeUp(sh,H,72),mat.print),0,D.floor,0));
+    for(let k=0;k<8;k++){const a=k*Math.PI/4+Math.PI/8;const b=mesh(cyl(3.5,3,12),mat.steel);b.position.set(100*Math.cos(a),D.floor+H+1.5,100*Math.sin(a));g.add(b);}
+    for(const sx of[-1,1])for(const sz of[-1,1]){const c=mesh(annulus(14,17.5,1.2),mat.alum);c.position.set(sx*D.px,D.floor+H,sz*D.pz);g.add(c);}
+    fixedG.add(reg(g,'foot'));}
+}
+const postBot=D.floor+D.footT,postLen=D.postTop-postBot;
+for(const sx of[-1,1])for(const sz of[-1,1]){
+  const m=mesh(extrudeUp(GORAIL_SHAPE,postLen,12),mat.gorail);m.position.set(sx*D.px,postBot,sz*D.pz);fixedG.add(reg(m,'posts'));
+}
+function plateBox(r,t,extraHoles=[]){const s=circleShape(r);s.holes.push(holeR(-BHX,-BHZ,BHX,BHZ));for(const h of extraHoles)s.holes.push(h);return extrudeUp(s,t,96);}
+const lighten=r=>[0,1,2,3].map(k=>{const a=Math.PI/4+k*Math.PI/2;return holeC(r*Math.cos(a),r*Math.sin(a),r*0.16);});
+//old seat plate replaced by printed cradle
+if(false)fixedG.add(reg(at(mesh(plateBox(150,D.tierT,[...[0,1,2,3,4,5].map(k=>{const a=k*Math.PI/3+0.3;return holeRR(118*Math.cos(a),118*Math.sin(a),26,16,6);})]),mat.plate2),0,D.seat,0),'seat'));
+fixedG.add(reg(at(mesh(plateBox(84,D.tierT),mat.plate2),0,D.mid,0),'mid'));
+// standoffs (body mounts)
+for(let k=0;k<8;k++){const a=k*Math.PI/4+Math.PI/8;fixedG.add(reg(at(mesh(cyl(4,8,16),mat.stud),132*Math.cos(a),D.seat+4,132*Math.sin(a)),'studs'));}
+// L-brackets: every plate that rings the spine bolts to the goRAIL posts' outer T-slots
+function postBrackets(yBot){const g=new THREE.Group();
+  for(const sx of[-1,1])for(const sz of[-1,1]){
+    const bx=mesh(box(3,14,18),mat.alum);bx.position.set(sx*(D.px+D.post/2+1.5),yBot-7,sz*D.pz);g.add(bx);
+    const fx=mesh(box(14,3,18),mat.alum);fx.position.set(sx*(D.px+D.post/2+7),yBot-1.5,sz*D.pz);g.add(fx);
+    const bz=mesh(box(18,14,3),mat.alum);bz.position.set(sx*D.px,yBot-7,sz*(D.pz+D.post/2+1.5));g.add(bz);
+    const fz=mesh(box(18,3,14),mat.alum);fz.position.set(sx*D.px,yBot-1.5,sz*(D.pz+D.post/2+7));g.add(fz);}
+  fixedG.add(reg(g,'brackets'));return g;}
+postBrackets(D.mid);
+// PRINTED PEDESTAL CRADLE (community-style): cone from the base hub up to a seat ring under the base top ring (B_T)
+{ const g=new THREE.Group(),y0=D.floor+40,y1=D.seat-6;
+  const ring=(r0,r1,ya,yb)=>new THREE.LatheGeometry([[r0,ya],[r1,ya],[r1,yb],[r0,yb]].map(([r,y])=>new THREE.Vector2(r,y)).concat([new THREE.Vector2(r0,ya)]),96);
+  g.add(mesh(ring(98,150,y1,D.seat),mat.print));          // seat ring under the base top ring
+  g.add(mesh(ring(90,110,y0,y0+8),mat.print));             // foot ring bolts onto the base hub's rim
+  const dr=147-100,dy=y1-(y0+8),L=Math.hypot(dr,dy),tilt=Math.atan2(dr,dy);
+  for(let k=0;k<6;k++){const a=k*Math.PI/3+Math.PI/6,arm=new THREE.Group();arm.rotation.y=-a;
+    const st=mesh(box(7,L,26),mat.print);st.position.set((100+147)/2,(y0+8+y1)/2,0);st.rotation.z=-tilt;arm.add(st);g.add(arm);}
+  fixedG.add(reg(g,'seat'));}
+
+// ===================== TIERS / RINGS =====================
+const pinions=[],stopTabs=[],homeSensors=[],bumperPads=[];
+const LIM={soft:90,hard:105};
+const deg=Math.PI/180;
+function arcBand(r0,r1,h,a0,a1){ // world angles (from +X toward +Z), extrudeUp flips sign
+  const sh=new THREE.Shape();sh.absarc(0,0,r1,-a0,-a1,true);sh.absarc(0,0,r0,-a1,-a0,false);sh.closePath();return extrudeUp(sh,h,64);}
+D.tiers.forEach((t,i)=>{
+  const f0=fixedG.children.length;
+  const a=t.ang*deg,mx=D.motR*Math.cos(a),mz=D.motR*Math.sin(a),inv=!!t.inv,P=t.top,PB=P-D.tierT;
+  // tier plate + brackets to posts
+  fixedG.add(reg(at(mesh(plateBox(D.tierR,D.tierT),mat.plate),0,PB,0),'tiers'));postBrackets(PB);
+  // bearing: normal tiers sit on the plate; T1 hangs under it (lazy-susan bearings run fine upside down)
+  const rY=inv?PB-9:P, cY=inv?PB-9-8:P+9;      // race bottom, carrier bottom
+  fixedG.add(reg(at(mesh(annulus(98,110,9),mat.race),0,rY,0),'bear'));
+  ringG[i].add(reg(at(mesh(annulus(112,t.ro,9),mat.race2),0,rY,0),'bear'));
+  const bg=new THREE.SphereGeometry(2.6,10,8);const balls=new THREE.InstancedMesh(bg,mat.ball,40);const dm=new THREE.Object3D();
+  for(let k=0;k<40;k++){const b=k/40*Math.PI*2;dm.position.set(111*Math.cos(b),rY+4.5,111*Math.sin(b));dm.updateMatrix();balls.setMatrixAt(k,dm.matrix);}
+  ballG[i].add(reg(balls,'bear'));
+  // DRIVE RING: one solid printed ring, bolted to the bearing's outer race and up/down into the printed body lip.
+  // Teeth (glued GT2 belt or printed gear) only on the inner edge where the pinion can reach.
+  const span=(LIM.hard+12)*deg,CT=8;
+  const dr=mesh(annulus(D.cupR+1.6,t.ro,CT),mat.cup);dr.position.y=cY;ringG[i].add(reg(dr,'cups'));
+  const lipR=mesh(arcBand(D.cupR+1.0,D.cupR+1.7,CT,a-span,a+span),mat.cup);lipR.position.y=cY;ringG[i].add(reg(lipR,'cups'));
+  // same hole pattern as the guide's spacer ring, so the printed body ring bolts on with its own heat-sets and the bearing screws line up
+  for(const[dg,hr,kind] of t.holes){const b=dg*deg;
+    const hd=mesh(cyl(3.2,1.5,12),kind===1?mat.servoLabel:mat.steel);hd.position.set(hr*Math.cos(b),cY+CT+0.8,hr*Math.sin(b));ringG[i].add(reg(hd,'cups'));
+    if(kind===2){const h2=mesh(cyl(1.6,1.6,10),mat.servoLabel);h2.position.set(hr*Math.cos(b),cY+CT+1.6,hr*Math.sin(b));ringG[i].add(reg(h2,'cups'));}}
+  const pitch=2,n=Math.round(2*span*D.cupR/pitch);const teeth=new THREE.InstancedMesh(box(1.1,CT-1,1.2),mat.belt,n);
+  for(let k=0;k<n;k++){const b=a-span+(k+.5)/n*2*span;dm.position.set((D.cupR+0.3)*Math.cos(b),cY+CT/2,(D.cupR+0.3)*Math.sin(b));dm.rotation.set(0,-b,0);dm.updateMatrix();teeth.setMatrixAt(k,dm.matrix);}
+  ringG[i].add(reg(teeth,'cups'));
+  // stop tab on the drive ring (opposite the motor) + two fixed bumpers on the plate
+  const ta=a+Math.PI,SR=91,gap=inv?PB-cY-CT:cY-P; // vertical gap between plate and drive ring
+  const tabH=gap-2,tab=mesh(box(9,tabH,9),mat.stop);tab.position.set(SR*Math.cos(ta),inv?cY+CT+tabH/2:cY-tabH/2,SR*Math.sin(ta));tab.rotation.y=-ta;ringG[i].add(reg(tab,'stops'));stopTabs.push(tab);
+  for(const sgn of[-1,1]){const ba=ta+sgn*(LIM.hard+6.2)*deg;const bm=new THREE.Group();
+    const blk=mesh(box(11,gap-2,13),mat.alum);blk.position.y=(inv?-1:1)*(gap-2)/2;bm.add(blk);const pad=mesh(box(11.5,gap-3,3),mat.bumper);pad.position.set(0,(inv?-1:1)*(gap-2)/2,-sgn*7.8);bm.add(pad);
+    (bumperPads[i]=bumperPads[i]||[]).push(pad);bm.position.set(SR*Math.cos(ba),inv?PB:P,SR*Math.sin(ba));bm.rotation.y=-ba;fixedG.add(reg(bm,'stops'));}
+  // motor: always on the far side of the plate from the drive ring; pinion at drive-ring height
+  // goBILDA 5-turn servo on the far side of the plate; 8 mm REX shaft up through the plate to a 30T GT2 pinion
+  const pinY=cY+CT/2,sv=new THREE.Group(),FY=inv?P:PB;
+  {const bd=mesh(box(40,38,20),mat.servo);bd.position.set(-10,-19-2,0);sv.add(bd);const lb=mesh(box(40.5,8,20.5),mat.servoLabel);lb.position.set(-10,-26,0);sv.add(lb);
+   const fl=mesh(box(54,2.5,20),mat.servo);fl.position.set(-10,-8,0);sv.add(fl);const hb=mesh(cyl(8,4,24),mat.alum);hb.position.y=0;sv.add(hb);}
+  sv.rotation.set(inv?Math.PI:0,-a-Math.PI/2,0,'YXZ');sv.position.set(mx,inv?P+2:PB-2,mz);fixedG.add(reg(sv,'ringmot'));
+  const sh=mesh(new THREE.CylinderGeometry(4,4,Math.abs(pinY-FY)+6,6),mat.steel);sh.position.set(mx,(pinY+FY)/2,mz);fixedG.add(reg(sh,'ringmot'));
+  const pin=gt2Pulley(30,CT-1);pin.position.set(mx,pinY,mz);if(inv)pin.rotation.x=Math.PI;fixedG.add(reg(pin,'ringmot'));pinions.push(pin);
+  // home: hall sensor on plate, magnet on the drive ring above/below it at 0°
+  const sa=a+0.75,hy=inv?PB-3:P+3;const hs=mesh(box(8,6,8),mat.sensor);hs.position.set(92*Math.cos(sa),hy,92*Math.sin(sa));homeSensors.push(hs);  // servos know their position: no ring homing
+  //(ring magnets removed: servo feedback)
+  for(let k=f0;k<fixedG.children.length;k++)fixedG.children[k].traverse(o=>o.userData.tier=i);
+});
+// PRINTED U-CAP: ties the 4 post tops together (sockets 15 mm deep), open at the front like other builders' frames
+{ const ox=D.px+D.post/2+6, oz=D.pz+D.post/2+6, r=8, sh=new THREE.Shape();
+  sh.moveTo(-ox+r,-oz);sh.lineTo(ox-r,-oz);sh.quadraticCurveTo(ox,-oz,ox,-oz+r);sh.lineTo(ox,oz-r);sh.quadraticCurveTo(ox,oz,ox-r,oz);
+  sh.lineTo(26,oz);sh.lineTo(26,10);sh.lineTo(-26,10);sh.lineTo(-26,oz);       // front opening
+  sh.lineTo(-ox+r,oz);sh.quadraticCurveTo(-ox,oz,-ox,oz-r);sh.lineTo(-ox,-oz+r);sh.quadraticCurveTo(-ox,-oz,-ox+r,-oz);
+  sh.holes.push(holeC(0,-6,22));
+  const g=new THREE.Group();g.add(at(mesh(extrudeUp(sh,20,24),mat.print),0,D.topPlate-15,0));
+  fixedG.add(reg(g,'topplate'));}
+
+// ===================== NECK: V-wheel carriage (community style) =====================
+// goBILDA 1120 U-channel (48 x 48 x 192) open to the front, 1/8" wing plates front & back,
+// 8 V-wheels riding the V-grooves on the inner faces of the 4 goRAIL posts. Tube held by 2 bearings inside the channel.
+const CH0=-20, CH1=172;            // channel bottom/top relative to carriage ref
+{ const g=new THREE.Group(),H=CH1-CH0,ym=D.tb0+(CH0+CH1)/2;
+  g.add(at(mesh(box(48,H,2.5),mat.alum),0,ym,-22.75));
+  for(const sx of[-1,1]){g.add(at(mesh(box(2.5,H,48),mat.alum),sx*22.75,ym,0));
+    for(let k=0;k<7;k++){const h=mesh(cyl(7,2.7,20).rotateZ(Math.PI/2),mat.steelDark);h.position.set(sx*22.75,D.tb0+CH0+12+k*24,0);g.add(h);}}
+  for(let k=0;k<7;k++){const h=mesh(cyl(7,2.7,20).rotateX(Math.PI/2),mat.steelDark);h.position.set(0,D.tb0+CH0+12+k*24,-22.75);g.add(h);}
+  // bearing plates inside the channel (goBILDA 32 mm ID flanged bearings), top and bottom
+  for(const yy of[D.tb0+CH0+4,D.tb0+CH1-8]){const bp=mesh(box(43,4,46),mat.alum);bp.position.set(0,yy,0);g.add(bp);g.add(at(mesh(annulus(16.1,19.5,5),mat.steel),0,yy+2,0));}
+  g.add(at(mesh(box(10,4,16),mat.block),30,D.tb0+CH1+2,15));                                     // spring tab
+  carriageG.add(reg(g,'carriage'));
+  // wing plates (SendCutSend): full back plate; front only top & bottom strips so the front stays open
+  const w=new THREE.Group();
+  w.add(at(mesh(box(70,H,3.175),mat.plate2),0,ym,-25.6));
+  for(const yy of[D.tb0+CH0+15,D.tb0+CH1-15])w.add(at(mesh(box(70,30,3.175),mat.plate2),0,yy,25.6));
+  carriageG.add(reg(w,'wings'));
+  // 8 V-wheels on standoffs: centre 13 mm off the plate, rim in the post groove (x = ±36, z = ±38)
+  const vg=new THREE.Group();
+  for(const sx of[-1,1])for(const sz of[-1,1])for(const yy of[D.tb0+CH0+15,D.tb0+CH1-15]){
+    const wh=new THREE.Group();
+    const c1=mesh(new THREE.CylinderGeometry(3.5,5,5,24),mat.motorBlack);c1.position.y=2.5;wh.add(c1);
+    const c2=mesh(new THREE.CylinderGeometry(5,3.5,5,24),mat.motorBlack);c2.position.y=-2.5;wh.add(c2);
+    wh.add(mesh(cyl(1.6,10.4,12),mat.steel));
+    wh.rotation.x=Math.PI/2;wh.position.set(sx*31,yy,sz*38);vg.add(wh);
+    const so=mesh(cyl(3,8,12).rotateX(Math.PI/2),mat.steel);so.position.set(sx*31,yy,sz*(27.2+4));vg.add(so);
+  }
+  carriageG.add(reg(vg,'vwheels'));
+}
+// MOD 0.8 spur gear (axis = local Y)
+function modGear(teeth,w,mat0){const g=new THREE.Group(),pr=teeth*0.8/2;g.add(mesh(cyl(pr-0.9,w,teeth),mat0));
+  const tg=box(1.0,w,1.6);for(let i=0;i<teeth;i++){const a=i/teeth*Math.PI*2;const t=mesh(tg,mat0);t.position.set((pr)*Math.cos(a),0,(pr)*Math.sin(a));t.rotation.y=-a;g.add(t);}return g;}
+// standard servo body (goBILDA 2000 series ~40x20x38): spline axis = local +Y at origin, body below
+function servoBody(lenAxis='x'){const g=new THREE.Group();
+  const bd=mesh(box(40,38,20),mat.servo);bd.position.set(-10,-21,0);g.add(bd);
+  const lb=mesh(box(40.5,8,20.5),mat.servoLabel);lb.position.set(-10,-28,0);g.add(lb);
+  const fl=mesh(box(54,2.5,20),mat.servo);fl.position.set(-10,-8,0);g.add(fl);
+  g.add(at(mesh(cyl(3,3,12),mat.steel),0,1,0));return g;}
+
+// YAW: goBILDA torque servo hangs under the channel, spline straight up into the tube (direct drive, like other builds)
+const yawY=D.tb0+CH0-34;   // servo spline height
+{ const g=new THREE.Group();
+  const sv=servoBody();sv.position.set(0,yawY,0);g.add(sv);
+  for(const sz of[-1,1]){const st=mesh(box(64,3,4),mat.plate2);st.position.set(-10,yawY-8,sz*12);g.add(st);           // servo frame
+    for(const sx of[-36,22]){const leg=mesh(box(3,(D.tb0+CH0)-(yawY-8),4),mat.plate2);leg.position.set(sx,((D.tb0+CH0)+(yawY-8))/2,sz*12);g.add(leg);}}
+  carriageG.add(reg(g,'yawsrv'));
+}
+yawG.add(reg(at(mesh(cyl(16,6,32),mat.alum),0,yawY+5,0),'yawsrv'));   // servo hub, turns with the tube
+// LIFT: goBILDA 5-turn servo fixed to a plate across the back posts; brass 24T MOD 0.8 gear drives an acetal rack on the carriage
+const liftGear=modGear(24,6,M(0xd4a63a,{metalness:.8,roughness:.3}));liftGear.rotation.z=Math.PI/2;liftGear.position.set(RKX,PY,-42.2);fixedG.add(reg(liftGear,'lift'));
+{ const sv=servoBody();sv.rotation.z=Math.PI/2;sv.position.set(RKX+5,PY,-42.2);
+  // rotate so spline points -X and body runs +X/vertical
+  const g=new THREE.Group();g.add(sv);fixedG.add(reg(g,'lift'));
+  const pl=new THREE.Group();pl.add(at(mesh(box(2*(D.px+D.post/2),60,3.175),mat.plate2),0,PY,-56.6));for(const sx of[-1,1])pl.add(at(mesh(box(10,60,5),mat.alum),sx*D.px,PY,-52.5));
+  for(const sx of[-1,1])for(const yy of[PY-20,PY+20]){const b=mesh(cyl(3,4,12).rotateX(Math.PI/2),mat.steel);b.position.set(sx*D.px,yy,-59);pl.add(b);}
+  const fr=mesh(box(46,48,3),mat.plate2);fr.position.set(RKX+24,PY,-53.5);pl.add(fr);
+  fixedG.add(reg(pl,'liftplate'));
+}
+// rack rides on the carriage's back wing plate
+const RK0=-40, RK1=178;
+{ const g=new THREE.Group(),L=RK1-RK0;
+  g.add(at(mesh(box(8,L,4.5),mat.motorBlack),RKX,D.tb0+(RK0+RK1)/2,-29.5));
+  const n=Math.floor(L/(Math.PI*0.8));const teeth=new THREE.InstancedMesh(box(8,1.1,1.7),mat.motorBlack,n);const d=new THREE.Object3D();
+  for(let k=0;k<n;k++){d.position.set(RKX,D.tb0+RK0+(k+.5)*Math.PI*0.8,-32.6);d.updateMatrix();teeth.setMatrixAt(k,d.matrix);}
+  g.add(teeth);carriageG.add(reg(g,'rack'));
+}
+// constant force spring drum
+const drum=new THREE.Group();drum.add(mesh(cyl(12.5,11,32).rotateZ(Math.PI/2),mat.spring));for(let k=0;k<5;k++){const r=mesh(annulus(6+k*1.3,6.6+k*1.3,11.2),mat.steelDark);r.rotation.z=Math.PI/2;r.position.x=-5.6;drum.add(r);}
+drum.position.set(30,DRY,22);fixedG.add(reg(drum,'cfspring'));
+fixedG.add(reg(at(mesh(box(26,10,30),mat.alum),31,DRY+10,22),'cfspring'));
+const cfTape=mesh(box(10,1,0.6),mat.spring);fixedG.add(reg(cfTape,'cfspring'));
+
+// ===================== ELECTRONICS (base bowl) =====================
+{ const g=new THREE.Group();
+  const psu=mesh(box(30,115,215),mat.alum);psu.position.set(-158,D.floor+57.5,0);g.add(psu);            // Mean Well LRS-350 standing on edge
+  g.add(at(mesh(box(0.6,50,70),mat.elec),-142.7,D.floor+75,30));
+  const brd=mesh(box(4,90,120),mat.pcarr);brd.position.set(150,D.floor+50,0);g.add(brd);               // printed/ply board standing up
+  g.add(at(mesh(box(10,30,60),M(0x1b4f9c)),143,D.floor+70,-20));                                      // Maestro 24
+  for(const zz of[25,50])g.add(at(mesh(box(8,25,20),mat.motorBlack),144,D.floor+35,zz));              // 6 V bucks
+  g.add(at(mesh(box(8,20,20),mat.pcarr),144,D.floor+30,-50));                                          // 5 V buck
+  fixedG.add(reg(g,'elec'));}
+const tubeBot=D.tb0+CH0-6, tubeTop=D.hb0+1;
+yawG.add(reg(at(mesh(cyl(16,tubeTop-tubeBot,48),mat.tube),0,(tubeTop+tubeBot)/2,0),'tube'));
+yawG.add(reg(at(mesh(cyl(21,9,40),mat.alum),0,D.tb0+CH0-10.5,0),'tube'));  // 1302 clamping hub on the tube end; servo hub bolts under it
+
+// ===================== MESH DATA (STLs) =====================
+const shellMeshes=[],armMeshes=[],headShell={hunter:[],guide:[],common:[]};
+function b64(s,T){const bin=atob(s);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return new T(u.buffer);}
+function geomOf(p){const pos=b64(p.p,Int16Array),idx=b64(p.i,Uint16Array);const f=new Float32Array(pos.length);for(let i=0;i<pos.length;i++)f[i]=pos[i]/20;const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(f,3));g.setIndex(new THREE.BufferAttribute(idx,1));g.computeVertexNormals();return g;}
+function shellGroup(key,parent,tag){for(const p of(window.R3X_MESH[key]||[])){const m=new THREE.Mesh(geomOf(p),shellMat);m.userData.shell=p.n;parent.add(m);shellMeshes.push(m);if(/^(PA_|TA_|HA_)/.test(p.n))armMeshes.push(m);if(tag)headShell[tag].push(m);}}
+shellGroup('fixed',fixedG);shellGroup('poker',ringG[0]);shellGroup('throttle',ringG[1]);shellGroup('hero',ringG[2]);
+shellGroup('head_hunter',headG,'hunter');shellGroup('head_guide',headG,'guide');shellGroup('head_common',headG,'common');
+// head-mech mech solids
+const mechMap={'Neck coupler':'hcoupler','U-joint (goBILDA 4005)':'hjoint','Gimbal bearing':'hjoint','Pillow block':'hjoint','Bearing':'hjoint','Custom joint piece (machined)':'hcustom','8 mm REX shaft':'hshaft','Sonic hub (lower)':'hshaft','Sonic hub (upper)':'hshaft','Head mounting plate':'hplate','Screw':'hplate','Torque servo':'hservo'};
+for(const p of window.R3X_MESH.mech){const m=new THREE.Mesh(geomOf(p),M(p.c,{metalness:p.c===0x2e2e2e||p.c===0x3b3f46?0.2:0.75,roughness:.35}));(p.side==='head'?headG:neckMechG).add(reg(m,mechMap[p.n]));}
+document.getElementById('loading').remove();
+
+// tie rods (asm→guide transform, then into yawG/headG local frames)
+const TH=218.1*Math.PI/180;
+const asm2g=(x,y,z)=>new THREE.Vector3(x*Math.cos(TH)+z*Math.sin(TH),y+671,-x*Math.sin(TH)+z*Math.cos(TH));
+const hubTop=asm2g(0,126,0).add(new THREE.Vector3(0,HEAD_SHIFT,0));          // in yawG local (neck side)
+const hornPts=[asm2g(-64.8,118,40),asm2g(-64.8,118,-40)];                     // guide coords (head side)
+const rods=hornPts.map(()=>{const r=mesh(cyl(1.8,1,12),mat.rod);yawG.add(reg(r,'hrods'));const b1=mesh(new THREE.SphereGeometry(4,12,10),mat.rod);const b2=b1.clone();yawG.add(reg(b1,'hrods'));yawG.add(reg(b2,'hrods'));return{r,b1,b2};});
+for(const h of hornPts){const arm=mesh(box(26,3,8),mat.servo);arm.position.copy(h);headG.add(reg(arm,'hservo'));}
+
+// ===================== coil =====================
+let coilMesh=null;
+function rebuildCoil(hb){if(coilMesh){coilG.remove(coilMesh);coilMesh.geometry.dispose();byId.coil.meshes=byId.coil.meshes.filter(m=>m!==coilMesh);}
+  const y0=608,y1=Math.max(hb-30,y0+16),turns=4,r=34,pts=[];
+  for(let i=0;i<=200;i++){const t=i/200,a=t*turns*Math.PI*2;pts.push(new THREE.Vector3(r*Math.cos(a),y0+(y1-y0)*t,r*Math.sin(a)));}
+  coilMesh=mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),300,5.5,10,false),mat.coil);coilG.add(reg(coilMesh,'coil'));}
+
+// ===================== state & apply =====================
+const S={lift:100,yaw:0,pitch:0,roll:0,r1:0,r2:0,r3:0};
+const rad=d=>d*Math.PI/180, dm=new THREE.Object3D();
+const pinRatio=D.cupR/D.pinR;const limStat=document.getElementById('limStat');
+function apply(){
+  const L=S.lift;
+  carriageG.position.y=L;yawG.position.y=L;yawG.rotation.y=rad(S.yaw);
+  headPivot.rotation.set(rad(S.pitch),0,rad(S.roll),'YXZ');
+  const rk=['r1','r2','r3'],names=['Poker','Throttle','Hero'];let stat=[];
+  rk.forEach((k,i)=>{S[k]=Math.max(-LIM.hard,Math.min(LIM.hard,S[k]));const v=Math.abs(S[k]);
+    const home=v<2.5,hit=v>=LIM.hard-0.01,soft=v>LIM.soft;
+    homeSensors[i].userData.live=home?mat.sensorOn:null;
+    for(const pd of bumperPads[i])pd.userData.live=null;
+    if(hit){const side=S[k]>0?1:0;bumperPads[i].filter((_,j)=>j===side).forEach(pd=>pd.userData.live=mat.bumperHit);}
+    if(hit)stat.push(`<span style="color:#ff6b6b">● ${names[i]}: HARD STOP — tab on bumper</span>`);
+    else if(soft)stat.push(`<span style="color:#ffb547">● ${names[i]}: past software limit — real motor stops at ±90°</span>`);
+    else if(home)stat.push(`<span style="color:#58e07f">● ${names[i]}: home sensor lit</span>`);});
+  limStat.innerHTML=stat.join('<br>')||'All rings inside the normal ±90° range.';
+  for(const arr of[homeSensors,...bumperPads])for(const m of arr){if(hiId!==m.userData.pid)m.material=m.userData.live||m.userData.base;}
+  [S.r1,S.r2,S.r3].forEach((v,i)=>{ringG[i].rotation.y=rad(v);ballG[i].rotation.y=rad(v)/2;pinions[i].rotation.y=rad(v)*pinRatio;});
+  liftGear.rotation.set(-L/9.6,0,Math.PI/2);
+  // spring tape
+  const tb=D.tb0+L,top=DRY-12.5,bot=tb+CH1+4;cfTape.scale.y=Math.max(1,top-bot);cfTape.position.set(30,(top+bot)/2,9.5);drum.rotation.x=-(top-bot)/12.5;
+  // tie rods: neck-side hub (yawG local) to head-side horns (via pivot)
+  headG.updateMatrixWorld(true);yawG.updateMatrixWorld(true);
+  const inv=new THREE.Matrix4().copy(yawG.matrixWorld).invert();
+  rods.forEach((o,i)=>{const hw=headG.localToWorld(hornPts[i].clone()).applyMatrix4(inv);const a=hubTop,b=hw;const mid=a.clone().add(b).multiplyScalar(.5),len=a.distanceTo(b);
+    o.r.position.copy(mid);o.r.scale.set(1,len,1);o.r.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),b.clone().sub(a).normalize());o.b1.position.copy(a);o.b2.position.copy(b);});
+  rebuildCoil(D.hb0+L);
+  for(const k of Object.keys(S)){const el=document.getElementById(k);el.value=S[k];document.getElementById(k+'V').textContent=k==='lift'?S[k].toFixed(0)+' mm':S[k].toFixed(0)+'°';}
+}
+for(const k of Object.keys(S))document.getElementById(k).addEventListener('input',e=>{stopAnim();S[k]=+e.target.value;apply();});
+
+// ===================== visibility =====================
+let shellMode='ghost',headHidden=false,armsHidden=false,headType='hunter',forceHideShells=false;
+function applyShells(){for(const m of shellMeshes){m.material=shellMode==='solid'?shellSolid:shellMat;let v=shellMode!=='hide'&&!forceHideShells;
+  if(headHidden&&(headShell.hunter.includes(m)||headShell.guide.includes(m)||headShell.common.includes(m)))v=false;
+  if(headShell.hunter.includes(m)&&headType!=='hunter')v=false;if(headShell.guide.includes(m)&&headType!=='guide')v=false;
+  if(armsHidden&&armMeshes.includes(m))v=false;m.visible=v;}}
+const setShell=m=>{shellMode=m;document.querySelectorAll('#shellBtns button').forEach(x=>x.classList.toggle('on',x.dataset.m===m));applyShells();};
+document.querySelectorAll('#shellBtns button').forEach(b=>b.onclick=()=>setShell(b.dataset.m));
+const hh=document.getElementById('hideHead'),ha=document.getElementById('hideArms'),ht=document.getElementById('headType');
+const setHeadHidden=v=>{headHidden=v;hh.classList.toggle('on',v);applyShells();};
+const setArmsHidden=v=>{armsHidden=v;ha.classList.toggle('on',v);applyShells();};
+hh.onclick=()=>setHeadHidden(!headHidden);ha.onclick=()=>setArmsHidden(!armsHidden);
+ht.onclick=()=>{headType=headType==='hunter'?'guide':'hunter';ht.textContent='Head: '+(headType==='hunter'?'Mech shell':'Guide');applyShells();};
+
+// ===================== layers =====================
+const LAYERS=[
+ {k:'plates',n:'Plates & mounts',ids:['plate','foot','seat','mid','tiers','topplate','studs','liftplate','brackets'],tri:true,c:0x8fb3d9},
+ {k:'posts',n:'goRAIL posts',ids:['posts'],tri:true,c:0xc5ccd4},
+ {k:'rings',n:'Ring drives & bearings',ids:['bear','cups','ringmot','stops'],c:0xd65a5a},
+ {k:'lift',n:'Neck lift (carriage, rack, spring)',ids:['vwheels','wings','carriage','lift','rack','cfspring'],c:0x9a6fc0},
+ {k:'yaw',n:'Neck turn + tube',ids:['yawsrv','tube','coil'],c:0xdfe5ec},
+ {k:'head',n:'Head mech',ids:['hcoupler','hjoint','hcustom','hshaft','hplate','hservo','hrods'],c:0xff8a3d},
+ {k:'elec',n:'Electronics',ids:['elec'],c:0xe9d79a}];
+const layerOf={};LAYERS.forEach(L=>L.ids.forEach(id=>layerOf[id]=L.k));
+const LS={};LAYERS.forEach(L=>LS[L.k]='on');
+let soloRing=-1;
+const glassMat={plates:new THREE.MeshStandardMaterial({color:0x8fb3d9,transparent:true,opacity:.14,depthWrite:false,roughness:.4}),
+                posts:new THREE.MeshStandardMaterial({color:0xc5ccd4,transparent:true,opacity:.14,depthWrite:false,roughness:.4})};
+const layDiv=document.getElementById('layers');
+LAYERS.forEach(L=>{const d=document.createElement('div');d.className='lay';d.innerHTML=`<span class="sw" style="background:${hex(L.c)}"></span><span>${L.n}</span><span class="st" id="st_${L.k}"></span>`;
+  d.onclick=()=>{const v=LS[L.k];LS[L.k]=L.tri?(v==='on'?'glass':v==='glass'?'off':'on'):(v==='on'?'off':'on');document.querySelectorAll('#presetBtns button').forEach(b=>b.classList.remove('on'));refreshVis();};layDiv.appendChild(d);});
+let hiId=null;
+function refreshVis(){
+  for(const p of PARTS){const L=layerOf[p.id],st=L?LS[L]:'on';
+    for(const m of p.meshes){let v=st!=='off';const tier=m.userData.tier??(m.parent&&m.parent.userData.tier);
+      if(soloRing>=0){let n=m;let ri=-1;while(n){const r=ringG.indexOf(n),b=ballG.indexOf(n);if(r>=0)ri=r;if(b>=0)ri=b;n=n.parent;}
+        if(ri>=0&&ri!==soloRing)v=false;if(tier!==undefined&&tier!==soloRing)v=false;}
+      m.visible=v;
+      m.material=hiId===p.id?hiMat:(st==='glass'&&glassMat[L]?glassMat[L]:(m.userData.live||m.userData.base));}}
+  LAYERS.forEach(L=>{const e=document.getElementById('st_'+L.k);e.textContent=LS[L.k]==='on'?'Solid':LS[L.k]==='glass'?'Glass':'Off';if(!L.tri&&LS[L.k]==='on')e.textContent='On';e.className='st '+(LS[L.k]==='on'?'on':LS[L.k]==='glass'?'glass':'');});
+}
+const PRESETS={all:{plates:'on',posts:'on',rings:'on',lift:'on',yaw:'on',head:'on',elec:'on',shell:'ghost'},
+  guts:{plates:'off',posts:'glass',rings:'on',lift:'on',yaw:'on',head:'on',elec:'on',shell:'hide'},
+  neck:{plates:'glass',posts:'glass',rings:'off',lift:'on',yaw:'on',head:'on',elec:'off',shell:'hide'},
+  rings:{plates:'glass',posts:'glass',rings:'on',lift:'off',yaw:'off',head:'off',elec:'off',shell:'hide'},
+  struct:{plates:'on',posts:'on',rings:'off',lift:'off',yaw:'off',head:'off',elec:'off',shell:'ghost'}};
+function preset(k){const P=PRESETS[k];for(const L of LAYERS)LS[L.k]=P[L.k];soloRing=-1;setShell(P.shell);document.querySelectorAll('#presetBtns button').forEach(b=>b.classList.toggle('on',b.dataset.p===k));refreshVis();}
+document.querySelectorAll('#presetBtns button').forEach(b=>b.onclick=()=>preset(b.dataset.p));
+function setCut(v){preset(v?'neck':'all');}
+// ===================== purchasing =====================
+const BUY={"gorail": {"v": "goBILDA", "n": "1109 goRAIL 912mm (cut to ~637)", "sku": "1109-0024-0912", "u": "https://www.gobilda.com/1109-series-gorail-912mm-length/", "p": 25.79, "q": 4, "note": "Or 624mm ($18.59, no cutting) if we lose 13mm of height"}, "gorail_nuts": {"v": "goBILDA", "n": "Hurricane Nut for goRAIL 25-pack", "sku": "2805-0004-0108", "u": "https://www.gobilda.com/hurricane-nut-for-gorail-25-pack/", "p": 12.99, "q": 2, "note": ""}, "m4_8": {"v": "goBILDA", "n": "M4 SHCS thread-locking 8mm 25-pack", "sku": "2822-0004-0008", "u": "https://www.gobilda.com/premium-m4-socket-head-thread-locking-screw-8mm-length-25-pack/", "p": 3.89, "q": 1, "note": ""}, "m4_12": {"v": "goBILDA", "n": "M4 SHCS thread-locking 12mm 25-pack", "sku": "2822-0004-0012", "u": "https://www.gobilda.com/premium-m4-socket-head-thread-locking-screw-12mm-length-25-pack/", "p": 4.29, "q": 1, "note": ""}, "tube32": {"v": "goBILDA", "n": "4100 Aluminum Tube 32mm OD \u00d7 600mm", "sku": "4100-2732-0600", "u": "https://www.gobilda.com/4100-series-aluminum-tube-27mm-id-x-32mm-od-600mm-length/", "p": 15.99, "q": 1, "note": "Cut to ~580mm: the head-mech coupler down to the carriage"}, "tube_bearing": {"v": "goBILDA", "n": "32mm ID Flanged Ball Bearing", "sku": "1601-0039-0032", "u": "https://www.gobilda.com/32mm-id-flanged-ball-bearing-39mm-od-5mm-thickness/", "p": 11.99, "q": 2, "note": "Top and bottom of the carriage channel"}, "tube_clamp": {"v": "goBILDA", "n": "1302 Clamping Hub 32mm bore", "sku": "1302-0032-0032", "u": "https://www.gobilda.com/1302-series-clamping-hub-32mm-bore/", "p": 7.99, "q": 2, "note": "Grips the tube; yaw pulley bolts to it"}, "servo": {"v": "goBILDA", "n": "2000 Dual Mode Servo 25-2 Torque", "sku": "2000-0025-0002", "u": "https://www.gobilda.com/2000-series-dual-mode-servo-25-2-torque/", "p": 36.99, "q": 3, "note": "2 head (pitch/roll) + 1 neck turn"}, "servo_prog": {"v": "goBILDA", "n": "Servo Programmer (2000 series)", "sku": "3102-0001-0001", "u": "https://www.gobilda.com/servo-programmer-for-2000-series-dual-mode-servo/", "p": 12.99, "q": 1, "note": "Sets servo range/mode"}, "gt2_belt": {"v": "goBILDA", "n": "GT2 belt 6mm \u00d7 5m", "sku": "3426-0006-0005", "u": "https://www.gobilda.com/2mm-pitch-gt2-timing-belt-6mm-width-5-meter-cut-length/", "p": 14.99, "q": 1, "note": "Lift loop, yaw loop, and teeth glued into the drive rings"}, "ujoint": {"v": "goBILDA", "n": "4005 Pattern Mount Universal Joint", "sku": "4005-0016-0001", "u": "https://www.gobilda.com/4005-series-pattern-mount-universal-joint-16-1/", "p": 17.99, "q": 1, "note": "head-mech BOM"}, "pillow": {"v": "goBILDA", "n": "6mm Bore Pillow Block 24mm", "sku": "1602-0032-0006", "u": "https://www.gobilda.com/6mm-bore-1-side-2-post-pillow-block-24mm-height/", "p": 7.99, "q": 2, "note": "head-mech BOM"}, "rex96": {"v": "goBILDA", "n": "1516 8mm REX Standoff 96mm 4-pack", "sku": "1516-4008-0960", "u": "https://www.gobilda.com/1516-series-8mm-rex-standoff-m4-x-0-7mm-threads-96mm-length-4-pack/", "p": 9.29, "q": 1, "note": "head-mech BOM"}, "hub_thru": {"v": "goBILDA", "n": "1311 Thru-Hole Sonic Hub 8mm REX", "sku": "1311-0016-4008", "u": "https://www.gobilda.com/1311-series-thru-hole-sonic-hub-8mm-rex-bore/", "p": 7.99, "q": 1, "note": "head-mech BOM"}, "hub_thr": {"v": "goBILDA", "n": "1309 Sonic Hub 8mm REX", "sku": "1309-0016-4008", "u": "https://www.gobilda.com/1309-series-sonic-hub-8mm-rex-bore/", "p": 7.99, "q": 4, "note": "1 head-mech BOM + 3 ring pinion shafts"}, "servo_hub": {"v": "goBILDA", "n": "1906 Servo Hub 25T 32mm", "sku": "1906-0025-0032", "u": "https://www.gobilda.com/1906-series-lightweight-servo-hub-25-tooth-spline-32mm-diameter/", "p": 4.99, "q": 6, "note": "2 head + 3 ring + 1 neck turn"}, "servo_arm": {"v": "goBILDA", "n": "Hub-Mount Control Arm 48mm", "sku": "1916-0014-0048", "u": "https://www.gobilda.com/plastic-hub-mount-control-arm-48mm-length/", "p": 3.99, "q": 2, "note": "head-mech BOM \u2014 cut down"}, "ball_link": {"v": "goBILDA", "n": "2913 Steel Ball Linkage M4 2-pack", "sku": "2913-0004-0241", "u": "https://www.gobilda.com/2913-series-steel-ball-linkage-female-m4-x-0-7mm-24-1mm-length-2-pack/", "p": 4.99, "q": 2, "note": "head-mech BOM"}, "rod_m4": {"v": "goBILDA", "n": "2808 M4 Threaded Rod 50mm 2-pack", "sku": "2808-0004-0050", "u": "https://www.gobilda.com/2808-series-stainless-steel-threaded-rod-m4-x-0-7mm-50mm-length-2-pack/", "p": 1.79, "q": 1, "note": "head-mech BOM"}, "lazy": {"v": "VXB", "n": "10\" aluminum lazy susan bearing (250 OD / 195 ID / 8.5 mm)", "sku": "UPC 00193019404072", "u": "https://vxb.com/products/10-inch-aluminum-lazy-susan-swivel-bearing", "p": 88.88, "q": 3, "note": "Exact size the model uses. Generic '10 inch aluminum turntable bearing' listings are often the same part for far less \u2014 buy one only if it lists 195 mm ID and \u22649 mm height"}, "cfspring": {"v": "McMaster", "n": "Constant-force spring 4.93 lb, 24\" ext.", "sku": "9293K337", "u": "https://www.mcmaster.com/9293K337/", "p": null, "q": 1, "note": "Price not shown to scripts \u2014 check site. Weigh the head first"}, "psu24": {"v": "TRC Electronics", "n": "Mean Well LRS-350-24 (24V 14.6A)", "sku": "LRS-350-24", "u": "https://trcelectronics.com/products/mean-well-lrs-350-24", "p": 34.81, "q": 1, "note": ""}, "buck_servo": {"v": "Pololu", "n": "6V 5A step-down D36V50F6 (servos)", "sku": "4092", "u": "https://www.pololu.com/product/4092", "p": 39.95, "q": 2, "note": "Two 6V/5A rails (rings+lift on one, head+neck turn on the other); 9 servos can pull >10A together"}, "buck_5v": {"v": "West3D", "n": "24V\u21925V buck (logic)", "sku": "", "u": "https://west3d.com/products/dc-dc-24v-to-5v-buck-converter", "p": 6.99, "q": 1, "note": ""}, "servo5": {"v": "goBILDA", "n": "2000 Series 5-Turn Dual Mode Servo (25-2 Torque)", "sku": "2000-0025-0502", "u": "https://www.gobilda.com/2000-series-5-turn-dual-mode-servo-25-2-torque/", "p": 49.99, "q": 4, "note": "3 rings + 1 lift"}, "rex48": {"v": "goBILDA", "n": "2106 8mm REX shaft 48mm (with E-clip)", "sku": "2106-4008-0480", "u": "https://www.gobilda.com/2106-series-8mm-rex-stainless-steel-shafting", "p": null, "q": 3, "note": "Ring pinion shafts; choose length per tier. ~$4\u20135 each, check site"}, "gt2_30": {"v": "goBILDA", "n": "GT2 30T pinion pulley 8mm REX", "sku": "3422-4008-0030", "u": "https://www.gobilda.com/2mm-pitch-gt2-pinion-timing-pulley-8mm-rex-bore-30-tooth/", "p": 8.99, "q": 3, "note": "Ring pinions"}, "channel": {"v": "goBILDA", "n": "1120 U-Channel 7 hole 192mm", "sku": "1120-0007-0192", "u": "https://www.servocity.com/1120-series-u-channel-bundle", "p": 9.98, "q": 1, "note": "Carriage body. Price from RobotShop; buy single length on goBILDA"}, "vwheel": {"v": "goBILDA", "n": "3600 V-Wheel 2-pack", "sku": "3600-0005-1010", "u": "https://www.gobilda.com/3600-series-v-wheel-5mm-bore-10mm-od-10mm-width-2-pack", "p": 6.99, "q": 4, "note": "8 wheels"}, "vstand": {"v": "goBILDA", "n": "V-Wheel Standoff Kit (13mm center height)", "sku": "3205-0001-0003", "u": "https://www.servocity.com/v-wheels", "p": 16.99, "q": 2, "note": "Contents not listed \u2014 confirm how many wheel positions one kit covers before ordering"}, "brass24": {"v": "goBILDA", "n": "2305 Brass MOD 0.8 servo gear (25T spline, 24T)", "sku": "2305-0025-0024", "u": "https://www.robotshop.com/products/servocity-2305-series-brass-mod-08-servo-gear-25-tooth-spline-24-tooth", "p": 9.99, "q": 1, "note": "Lift pinion (the 'gold gear')"}, "rack": {"v": "goBILDA", "n": "Acetal MOD 0.8 gear rack (131T, 328mm)", "sku": "2311-0001-0131", "u": "https://www.gobilda.com/acetal-mod-0-8-gear-rack-131-tooth-41-hole/", "p": 7.99, "q": 1, "note": "Cut to ~218mm"}, "servo_frame": {"v": "goBILDA", "n": "1802 Servo Frame (43mm, standard servos)", "sku": "1802-0043-0001", "u": "https://www.gobilda.com/", "p": null, "q": 2, "note": "Lift + neck-turn servo mounts; or print them. Price not checked"}, "maestro": {"v": "Pololu", "n": "Mini Maestro 24-channel USB servo controller", "sku": "1356", "u": "https://www.pololu.com/product/1356", "p": 54.95, "q": 1, "note": "Runs every servo; on-board script/sequence memory. community R-3X animation files include a Maestro script"}};
+const PART_BUY={"posts": ["gorail"], "brackets": ["gorail_nuts", "m4_8", "m4_12"], "studs": ["m4_12"], "bear": ["lazy"], "cups": ["gt2_belt"], "ringmot": ["servo5", "servo_hub", "hub_thr", "rex48", "gt2_30"], "carriage": ["channel", "tube_bearing"], "lift": ["servo5", "brass24", "servo_frame"], "cfspring": ["cfspring"], "yawsrv": ["servo", "servo_hub", "servo_frame"], "tube": ["tube32", "tube_clamp"], "hjoint": ["ujoint", "pillow"], "hshaft": ["rex96", "hub_thru", "hub_thr"], "hservo": ["servo", "servo_hub", "servo_arm", "servo_prog"], "hrods": ["ball_link", "rod_m4"], "elec": ["maestro", "psu24", "buck_servo", "buck_5v"], "vwheels": ["vwheel", "vstand"], "rack": ["rack"]};
+// ===================== part list / highlight =====================
+const list=document.getElementById('parts');let selected=null,lastGroup='';
+for(const p of PARTS){if(p.group!==lastGroup){const g=document.createElement('div');g.className='grp';g.textContent=p.group;list.appendChild(g);lastGroup=p.group;}
+  const d=document.createElement('div');d.className='part';d.dataset.id=p.id;
+  const buys=(PART_BUY[p.id]||[]).map(k=>{const b=BUY[k];return `<a class="buy" href="${b.u}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${b.n} · ${b.p!=null?'$'+b.p.toFixed(2):'see site'}${b.q>1?' ×'+b.q:''}</a>`;}).join('');
+  d.innerHTML=`<span class="sw" style="background:${hex(p.color)}"></span><div><div class="pn">${p.name}<span class="tag">${p.tag}</span></div><div class="pd">${p.desc}</div>${buys?'<div class="buys">'+buys+'</div>':''}</div>`;
+  d.onclick=()=>select(selected===p.id?null:p.id);list.appendChild(d);}
+const hiMat=new THREE.MeshStandardMaterial({color:0xffd34d,emissive:0xff9e00,emissiveIntensity:.6,roughness:.4});
+function select(id){selected=id;hiId=id;document.querySelectorAll('.part').forEach(e=>e.classList.toggle('sel',e.dataset.id===id));refreshVis();}
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2(),tip=document.getElementById('tip');
+const pickables=()=>PARTS.flatMap(p=>p.meshes).filter(m=>m.visible);
+renderer.domElement.addEventListener('pointermove',e=>{const r=renderer.domElement.getBoundingClientRect();mouse.set(((e.clientX-r.left)/r.width)*2-1,-((e.clientY-r.top)/r.height)*2+1);
+  ray.setFromCamera(mouse,camera);const hit=ray.intersectObjects(pickables(),false)[0];
+  if(hit){const p=byId[hit.object.userData.pid];tip.innerHTML=`<b>${p.name}</b>${p.desc}`;tip.style.display='block';tip.style.left=Math.min(e.clientX-r.left+14,r.width-300)+'px';tip.style.top=(e.clientY-r.top+14)+'px';}else tip.style.display='none';});
+renderer.domElement.addEventListener('click',()=>{ray.setFromCamera(mouse,camera);const hit=ray.intersectObjects(pickables(),false)[0];if(hit){const id=hit.object.userData.pid;select(selected===id?null:id);document.querySelector(`.part[data-id="${id}"]`)?.scrollIntoView({block:'nearest',behavior:'smooth'});}});
+
+// shopping list table
+{ const byV={};for(const[k,b]of Object.entries(BUY))(byV[b.v]=byV[b.v]||[]).push(b);
+  let h='<table class="shop">',tot=0;const order=['goBILDA','StepperOnline','West3D','VXB','BIGTREETECH','Adafruit','Pololu','TRC Electronics','CabinetParts','McMaster'];
+  for(const v of order.concat(Object.keys(byV).filter(x=>!order.includes(x)))){if(!byV[v])continue;let st=0;let rows='';
+    for(const b of byV[v]){const line=b.p!=null?b.p*b.q:null;st+=line||0;rows+=`<tr><td><a href="${b.u}" target="_blank" rel="noopener">${b.n}</a>${b.sku?` <span style="color:#6f7a88">${b.sku}</span>`:''}${b.note?`<div style="color:#8a94a2">${b.note}</div>`:''}</td><td class="r">${b.q}×</td><td class="r">${line!=null?'$'+line.toFixed(2):'—'}</td></tr>`;}
+    tot+=st;h+=`<tr class="vh"><td colspan="2">${v}</td><td class="r">$${st.toFixed(2)}</td></tr>`+rows;}
+  h+=`<tr class="tot"><td colspan="2">Total (before shipping/tax, spring TBD)</td><td class="r">$${tot.toFixed(2)}</td></tr></table>`;
+  document.getElementById('shop').innerHTML=h;
+  const sb=document.getElementById('shopToggle');sb.onclick=()=>{const el=document.getElementById('shop');const o=el.style.display==='none';el.style.display=o?'block':'none';sb.textContent=o?'Hide shopping list':'Show shopping list';};
+}
+// ===================== cameras =====================
+const cams={limc:[[290,830,330],[0,350,0]],iso:[[1150,950,1150],[0,380,0]],front:[[0,450,1700],[0,420,0]],top:[[0,1900,1],[0,300,0]],
+  neck:[[260,640,330],[0,500,0]],headc:[[330,820,330],[0,740,0]],base:[[560,300,560],[0,60,0]],
+  liftc:[[420,300,-460],[0,200,-20]],yawc:[[170,230,280],[0,140,0]],ringc:[[300,520,300],[40,400,0]],platesc:[[700,420,600],[0,260,0]]};
+let camAnim=null;
+function goCam(k){const[p,t]=cams[k];camAnim={from:camera.position.clone(),to:new THREE.Vector3(...p),tf:controls.target.clone(),tt:new THREE.Vector3(...t),t:0};}
+document.querySelectorAll('[data-cam]').forEach(b=>b.onclick=()=>goCam(b.dataset.cam));
+camera.position.set(...cams.iso[0]);controls.target.set(...cams.iso[1]);
+
+// ===================== animation / tours =====================
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+let anim=null,speed=1;const cap=document.getElementById('caption');
+function stopAnim(){anim=null;if(soloRing>=0){soloRing=-1;refreshVis();}document.querySelectorAll('[data-tour],#demo').forEach(b=>b.classList.remove('on'));cap.style.display='none';}
+function caption(html){cap.innerHTML=html;cap.style.display='block';}
+const base={lift:100,yaw:0,pitch:0,roll:0,r1:0,r2:0,r3:0};
+const tours={
+  lift:{cam:'liftc',setup(){setShell('hide');setHeadHidden(true);setCut(true);},cap:'<b>Neck lift (rack & pinion, like other builds).</b> A goBILDA 5-turn servo is bolted to a plate across the back posts. Its brass 24-tooth gear drives a black acetal gear rack on the back of the carriage, so the carriage rolls up and down the four posts on its V-wheels. The servo never moves, so its wires never flex. The purple constant-force spring carries the head\'s weight, so the servo isn\'t fighting gravity — that\'s what keeps a servo lift from jittering.',
+    f:t=>({lift:75+70*Math.sin(t*0.9)*Math.sin(t*0.9)*Math.sign(Math.sin(t*0.9))+0})},
+  yaw:{cam:'yawc',setup(){setShell('hide');setHeadHidden(true);setCut(true);},cap:'<b>Neck turn (yaw).</b> A goBILDA torque servo hangs under the carriage with its spline pointing straight up into the bottom of the neck tube: direct drive, no belts. The tube spins in the carriage\'s two bearings, which carry the head, so the servo only has to twist it. It rides up and down with the carriage.',
+    f:t=>({yaw:90*Math.sin(t*0.7)})},
+  head:{cam:'headc',setup(){setShell('ghost');setHeadHidden(false);setArmsHidden(true);setCut(false);},cap:'<b>Head nod & tilt (the head mech).</b> The neck tube ends in the head-mech coupler and a goBILDA U-joint (orange = the machined joint piece). The head plate and two torque servos sit on top of the joint and tilt with the head. Each servo\'s tie rod pushes against the fixed hub on the neck shaft: both push = nod, opposite = tilt.',
+    f:t=>({pitch:20*Math.sin(t*0.8),roll:16*Math.sin(t*0.53+1)})},
+  ring:{cam:'ringc',setup(){preset('rings');},cap:'<b>Ring drive.</b> Each ring rides a lazy-susan bearing (orange): inner race on the aluminum tier plate, outer race turns. A solid printed drive ring (red) screws to the outer race and the printed body ring bolts on through its inner lip. A goBILDA 5-turn servo sits on the other side of the plate; a shaft brings its 30-tooth pinion up to the teeth on the drive ring\'s inner edge. 8.85° of servo = 1° of ring, so 5 servo turns = ±101° of ring travel, and no homing at power-up.',
+    f:t=>({r1:80*Math.sin(t*0.6),r2:-70*Math.sin(t*0.5+1),r3:60*Math.sin(t*0.7+2)})},
+  limits:{cam:'limc',setup(){preset('rings');LS.plates='on';soloRing=0;refreshVis();},cap:'<b>Limits (poker ring shown alone).</b> The servo itself can only reach ±101° at the ring, and the software never asks for more than ±90°. If anything ever slipped, the blue tab hits a rubber-faced bumper at ±105° (flashes red). Servos know their position, so there\'s no homing dance at power-up. The red drive ring only has teeth on the arc the pinion can reach.',
+    f:t=>({r1:112*Math.sin(t*0.45)})},
+  plates:{cam:'platesc',setup(){preset('all');setHeadHidden(true);setArmsHidden(true);},cap:'<b>Plates & body mounts.</b> Seven aluminum plates tie the four goRAIL posts into one stiff tower: drive plate + foot plate on the floor, the green <b>pedestal seat plate</b> under the base top ring, a <b>mid brace</b> inside the pedestal, the three blue <b>tier plates</b> under each ring, and the top plate. Silver standoffs are where the printed base top ring and pedestal bolt or magnet on, like another build.',
+    f:t=>({r1:25*Math.sin(t*0.4)})},
+  all:{cam:'iso',setup(){setShell('ghost');setHeadHidden(false);setArmsHidden(false);setCut(false);},cap:null,f:t=>{
+    const T=t%16,beat=Math.max(0,Math.sin(T*Math.PI*2.0)),look=T<4?0:T<8?ease(Math.min(1,(T-4)/1.2)):T<11?1-ease(Math.min(1,(T-8)/1.2)):0;
+    return{lift:110-30*beat*(T<4||T>11?1:.3)-80*look,yaw:55*Math.sin(T*.45)*(1-look)-70*look,pitch:7*beat*(T<4||T>11?1:0)+18*look,roll:10*Math.sin(T*.9),r1:45*Math.sin(T*.6),r2:-50*Math.sin(T*.5+1),r3:40*Math.sin(T*.7+2)};}}
+};
+function runTour(k){stopAnim();const t=tours[k];Object.assign(S,base);t.setup();goCam(t.cam);if(t.cap)caption(t.cap);anim={k,t0:performance.now(),tt:0,last:performance.now()};
+  document.querySelector(`[data-tour="${k}"]`)?.classList.add('on');if(k==='all')document.getElementById('demo').classList.add('on');}
+document.querySelectorAll('[data-tour]').forEach(b=>b.onclick=()=>{anim&&anim.k===b.dataset.tour?stopAnim():runTour(b.dataset.tour);});
+document.getElementById('demo').onclick=()=>{anim&&anim.k==='all'?stopAnim():runTour('all');};
+document.getElementById('reset').onclick=()=>{stopAnim();Object.assign(S,base);preset('all');setHeadHidden(false);setArmsHidden(false);apply();goCam('iso');};
+document.getElementById('slow').onclick=e=>{speed=speed===1?0.35:1;e.target.classList.toggle('on',speed!==1);};
+
+// ===================== loop =====================
+resize();refreshVis();apply();applyShells();
+renderer.setAnimationLoop(now=>{
+  if(anim){const dt=(now-anim.last)/1000;anim.last=now;anim.tt+=dt*speed;Object.assign(S,base,tours[anim.k].f(anim.tt));S.lift=Math.max(0,Math.min(150,S.lift));apply();}
+  if(camAnim){camAnim.t=Math.min(1,camAnim.t+(now-(camAnim.last||now))/1100);camAnim.last=now;const k=ease(camAnim.t);camera.position.lerpVectors(camAnim.from,camAnim.to,k);controls.target.lerpVectors(camAnim.tf,camAnim.tt,k);if(camAnim.t>=1)camAnim=null;}
+  controls.update();renderer.render(scene,camera);
+});
+window.__R3X={S,apply,runTour,goCam,setShell,setHeadHidden};
+</script>
+</body>
+</html>
